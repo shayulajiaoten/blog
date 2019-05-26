@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>首页</title>
+    <style type="text/css">
+        body {
+            margin: 0 20px;
+            line-height: 1;
+        }
+        a {
+            text-decoration-line: none;
+        }
+
+        .title-wrapper {
+            padding: 15px 0;
+            border-top: 1px solid #ccc;
+        }
+        .title-wrapper .title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .title-wrapper .info-wrapper span,
+        .title-wrapper .info-wrapper a {
+            font-size: 14px;
+            color: #999;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>博客首页</h1>
+    <div id="blog-container"></div>
+
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+    <script src="https://cdn.bootcss.com/moment.js/2.23.0/moment.min.js"></script>
+    <script src="https://cdn.bootcss.com/moment.js/2.23.0/locale/zh-cn.js"></script>
+    <script>
+
+        // 显示格式化的时间
+        function getFormatDate(dt) {
+            return moment(dt).format('LL')
+        }
+
+        // 获取 url 参数
+        function getUrlParams() {
+            let paramStr = location.href.split('?')[1] || ''
+            paramStr = paramStr.split('#')[0]
+            const result = {}
+            paramStr.split('&').forEach(itemStr => {
+                const arr = itemStr.split('=')
+                const key = arr[0]
+                const val = arr[1]
+                result[key] = val
+            })
+            return result
+        }
+
+        // 获取 dom 元素
+        const container = document.getElementById('blog-container')
+
+        // 拼接接口 url
+        let url = '/api/blog/list'
+        const urlParams = getUrlParams()
+        if (urlParams.author) {
+            url += '?author=' + urlParams.author
+        }
+
+        // 加载数据
+        const xhr = new XMLHttpRequest()
+        
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState == 4){
+                if (xhr.status >= 200 && xhr.status <300 || xhr.status ==304){
+                    const data = JSON.parse(xhr.response).data
+
+                    // 原生JS操作dom
+                    
+                    data.forEach(item =>{
+                        let text_wrapper = document.createElement('div')
+                        text_wrapper.className = 'title-wrapper'
+                        let title = document.createElement('p')
+                        title.className = 'title'
+                        let a1 = document.createElement('a')
+                        a1.setAttribute('href',"/detail.html?id="+item.id)
+                        a1.setAttribute('target',"_blank")
+                        a1.innerHTML = item.title
+                        title.appendChild(a1)
+                        text_wrapper.appendChild(title)
+                        let info_wrapper =document.createElement('div')
+                        info_wrapper.className = 'info-wrapper'
+                        let a2 = document.createElement('a')
+                        a2.setAttribute('href',"/index.html?author="+item.author)
+                        a2.innerHTML = item.author+'&nbsp'
+                        let span2 = document.createElement('span')
+                        span2.innerHTML = getFormatDate(item.createtime)
+                        let span1 = document.createElement('span').appendChild(a2)
+                        info_wrapper.appendChild(span1)
+                        info_wrapper.appendChild(span2)
+                        text_wrapper.appendChild(info_wrapper)
+
+
+                        container.appendChild(text_wrapper)
+                    })
+                }
+                else{
+                        console.log(xhr.status);
+                    }
+            }
+        }
+        xhr.open('get','http://localhost:8080'+url,true)
+        xhr.send(null)
+    </script>
+</body>
+</html>
